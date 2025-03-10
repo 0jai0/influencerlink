@@ -22,9 +22,16 @@ const allowedOrigins = [
 ];
 // Middleware
 app.use(cors({
-    origin: allowedOrigins,  // Allow requests only from this origin
-    credentials: true,    
-    methods: ["GET", "POST", "PATCH", "PUT"], // Allow specific HTTP methods
+    origin: allowedOrigins,   
+    methods: ["GET", "POST", "PATCH", "PUT"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cache-Control",
+      "Expires",
+      "Pragma",
+    ],
+    credentials: true, // Allow specific HTTP methods
 }));
 app.use(cookieParser());
 app.use(bodyParser.json({ limit: "50mb" }));
@@ -60,6 +67,14 @@ const io = new Server(server, {
   cors: {
     origin: allowedOrigins, // Update with your client URL in production
     methods: ["GET", "POST", "PATCH"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Cache-Control",
+      "Expires",
+      "Pragma",
+    ],
+    credentials: true,
   },
 });
 setupSocket(io);
