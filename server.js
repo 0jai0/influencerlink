@@ -42,7 +42,7 @@ app.use("/api/otp", otpRouter);
 
 // Default Route
 app.get('/', (req, res) => {
-    res.send('Hello, World! Welcome to the Node.js server.');
+    res.send('Hello, World! Welcome to 2 the Node.js server.');
 });
 
 // Sample API Route
