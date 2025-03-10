@@ -18,7 +18,7 @@ dotenv.config();
 
 // Middleware
 app.use(cors({
-    origin: "http://localhost:3000",  // Allow requests only from this origin
+    origin: "https://influencerlink-af410.firebaseapp.com",  // Allow requests only from this origin
     credentials: true,    
     methods: ["GET", "POST", "PATCH", "PUT"], // Allow specific HTTP methods
 }));
@@ -54,7 +54,7 @@ app.get('/api', (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000", // Update with your client URL in production
+    origin: "https://influencerlink-af410.firebaseapp.com", // Update with your client URL in production
     methods: ["GET", "POST", "PATCH"],
   },
 });
