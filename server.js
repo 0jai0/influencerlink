@@ -16,9 +16,13 @@ const otpRouter = require("./routes/auth/otp-routes");
 const app = express();
 dotenv.config();
 
+const allowedOrigins = [
+  "http://localhost:3000", // Allow local development
+  "https://influencerlink-af410.firebaseapp.com" // Existing allowed origin
+];
 // Middleware
 app.use(cors({
-    origin: "https://influencerlink-af410.firebaseapp.com",  // Allow requests only from this origin
+    origin: allowedOrigins,  // Allow requests only from this origin
     credentials: true,    
     methods: ["GET", "POST", "PATCH", "PUT"], // Allow specific HTTP methods
 }));
@@ -54,7 +58,7 @@ app.get('/api', (req, res) => {
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://influencerlink-af410.firebaseapp.com", // Update with your client URL in production
+    origin: allowedOrigins, // Update with your client URL in production
     methods: ["GET", "POST", "PATCH"],
   },
 });
