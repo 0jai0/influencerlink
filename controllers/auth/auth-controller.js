@@ -151,7 +151,7 @@ const loginUser = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "6000m" }
     );
-    res.cookie("token", token, { httpOnly: true, secure: true, sameSite: "Node" }).json({
+    res.cookie("token", token, { httpOnly: true, secure: false }).json({
       success: true,
       token: token,
       message: "Logged in successfully",
