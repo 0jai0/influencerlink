@@ -12,7 +12,7 @@ const collectionRoutes = require("./routes/message/collection.routes");
 const messageRoutes = require("./routes/message/message.routes.js");
 const authRouter = require("./routes/auth/auth-routes");
 const otpRouter = require("./routes/auth/otp-routes");
-const paymentRoutes = require("./routes/payment/payment-routes");
+//const paymentRoutes = require("./routes/payment/payment-routes");
 
 dotenv.config();
 const app = express();
@@ -56,7 +56,7 @@ app.use("/api/pageowners", authRouter);
 app.use("/api/messages", messageRoutes);
 app.use("/api/collection", collectionRoutes);
 app.use("/api/otp", otpRouter);
-app.use("/api/payment", paymentRoutes);
+//app.use("/api/payment", paymentRoutes);
 
 // ✅ Default Routes
 app.get("/", (req, res) => {
