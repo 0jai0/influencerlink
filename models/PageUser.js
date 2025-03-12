@@ -39,6 +39,14 @@ const pageOwnerSchema = new mongoose.Schema({
         }  // Platform where the post was made
     }],
     isOnline: { type: Boolean, default: false },
+    linkCoins: { type: Number, default: 5 },
+    payments: [{
+        transactionId: { type: String },
+        amount: { type: Number },
+        status: { type: String },
+        linkCoinsAdded: { type: Number },
+        date: { type: Date, default: Date.now }
+    }],
     createdAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
