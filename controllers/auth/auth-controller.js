@@ -125,60 +125,43 @@ const loginUser = async (req, res) => {
   try {
     const lowerCaseEmail = email.toLowerCase();
     const checkUser = await User.findOne({ email: lowerCaseEmail });
-
-    if (!checkUser) {
+    if (!checkUser)
+      
       return res.json({
+    
         success: false,
-        message: "User doesn't exist! Please register first",
+        message: "User doesn't exists! Please register first",
       });
-    }
-
-    const checkPasswordMatch = await bcrypt.compare(password, checkUser.password);
-    if (!checkPasswordMatch) {
+    const checkPasswordMatch = await bcrypt.compare(
+      password,
+      checkUser.password
+    );
+    if (!checkPasswordMatch)
       return res.json({
         success: false,
         message: "Incorrect password! Please try again",
       });
-    }
-
-    // Ensure all relevant user data is included in the JWT token
-    const tokenPayload = {
-      id: checkUser._id,
-      email: checkUser.email,
-      ownerName: checkUser.ownerName,
-      profilePicUrl: checkUser.profilePicUrl,
-      mobile: checkUser.mobile,
-      whatsapp: checkUser.whatsapp,
-      socialMediaPlatforms: checkUser.socialMediaPlatforms,
-      profileDetails: checkUser.profileDetails,
-      adCategories: checkUser.adCategories,
-      pageContentCategory: checkUser.pageContentCategory,
-      pricing: checkUser.pricing,
-      pastPosts: checkUser.pastPosts,
-      isOnline: checkUser.isOnline,
-      linkCoins: checkUser.linkCoins,
-      payments: checkUser.payments,
-      createdAt: checkUser.createdAt,
-    };
-
-    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "6000m" });
-
-    // Exclude password before sending user data
-    const { password: _, ...userData } = checkUser.toObject();
-
-    res
-      .cookie("token", token, { httpOnly: true, secure: true  })
-      .json({
-        success: true,
-        token,
-        message: "Logged in successfully",
-        user: userData, // Return full user details (excluding password)
-      });
+    const token = jwt.sign(
+      {
+        id: checkUser._id,
+        role: checkUser.role,
+        email: checkUser.email,
+        userName: checkUser.userName,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "6000m" }
+    );
+    res.cookie("token", token, { httpOnly: true, secure: true }).json({
+      success: true,
+      token: token,
+      message: "Logged in successfully",
+      user:checkUser,
+    });
   } catch (e) {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Some error occurred",
+      message: "Some error occured",
     });
   }
 };
@@ -280,19 +263,15 @@ const logoutUser = (req, res) => {
 
 //auth middleware
 const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+  const token = req.cookies.token; // Get token from cookie
+  if (!token) return res.status(401).json({ message: "Unauthorized" });
 
-  const token = authHeader.split(" ")[1];
-  console.log("Received Token:", token); // Debugging
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).json({ message: "Invalid token" });
+    res.status(401).json({ message: "Invalid token" });
   }
 };
 

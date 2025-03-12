@@ -24,12 +24,19 @@ const allowedOrigins = [
 ];
 
 // ✅ CORS Middleware (Put this FIRST)
-app.use(cors({
+const corsOptions = {
   origin: allowedOrigins,
-  methods: ["GET", "POST", "PATCH", "PUT"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true // Allow cookies & authorization headers
-}));
+  credentials: true,
+  exposedHeaders: ["Authorization", "Content-Length", "X-Foo", "X-Bar"],
+  maxAge: 86400,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // ✅ Middleware Setup
 app.use(cookieParser());
