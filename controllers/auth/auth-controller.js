@@ -167,7 +167,7 @@ const loginUser = async (req, res) => {
     const { password: _, ...userData } = checkUser.toObject();
 
     res
-      .cookie("token", token, { httpOnly: true, secure: false })
+      .cookie("token", token, { httpOnly: true, secure: true  })
       .json({
         success: true,
         token,
