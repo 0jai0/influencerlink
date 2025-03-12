@@ -12,7 +12,7 @@ const collectionRoutes = require("./routes/message/collection.routes");
 const messageRoutes = require("./routes/message/message.routes.js");
 const authRouter = require("./routes/auth/auth-routes");
 const otpRouter = require("./routes/auth/otp-routes");
-//const paymentRoutes = require("./routes/payment/payment-routes");
+const paymentRoutes = require("./routes/payment/payment-routes");
 
 dotenv.config();
 const app = express();
@@ -56,7 +56,7 @@ app.use("/api/pageowners", authRouter);
 app.use("/api/messages", messageRoutes);
 app.use("/api/collection", collectionRoutes);
 app.use("/api/otp", otpRouter);
-//app.use("/api/payment", paymentRoutes);
+app.use("/api/payment", paymentRoutes);
 
 // ✅ Default Routes
 app.get("/", (req, res) => {
@@ -82,7 +82,7 @@ const io = new Server(server, {
 setupSocket(io);
 
 // ✅ Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
