@@ -149,7 +149,7 @@ const loginUser = async (req, res) => {
         userName: checkUser.userName,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "6000m" }
+      { expiresIn: "1d" }
     );
     res.cookie("token", token, { httpOnly: true, secure: false,sameSite: "None" }).json({
       success: true,
