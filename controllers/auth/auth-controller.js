@@ -263,7 +263,16 @@ const logoutUser = (req, res) => {
 
 //auth middleware
 const authMiddleware = (req, res, next) => {
-  const token = req.cookies.token; // Get token from cookie
+  let token = req.cookies.token; // Get token from cookie
+
+  // If token is not in cookies, check Authorization header
+  if (!token && req.headers.authorization) {
+    const authHeader = req.headers.authorization;
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.split(" ")[1]; // Extract token after "Bearer "
+    }
+  }
+
   if (!token) return res.status(401).json({ message: "Unauthorized" });
 
   try {
@@ -274,6 +283,7 @@ const authMiddleware = (req, res, next) => {
     res.status(401).json({ message: "Invalid token" });
   }
 };
+
 
 
 module.exports = {getUserById,getAllUsers, updateUser,registerUser, loginUser, logoutUser, authMiddleware,forgotPassword };
