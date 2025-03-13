@@ -22,6 +22,12 @@ router.get('/user/:id', getUserById);
 // In auth-routes.js
 router.get("/check-auth", authMiddleware, async (req, res) => {
   try {
+    const userId = req.headers.userid; // Extract userId from headers
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+    
     const user = await User.findById(req.user.id).select("-password");
     if (!user) return res.status(404).json({ success: false, message: "User not found" });
     res.status(200).json({ success: true, user });
