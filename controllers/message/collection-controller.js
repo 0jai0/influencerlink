@@ -1,4 +1,5 @@
 const CollectionofUser = require("../../models/CollectionofUsers");
+const PageOwner = require("../../models/PageUser"); // Import the PageOwner model
 
 // Add userIds to a specific userId
 const addUserIds = async (req, res) => {
@@ -9,25 +10,41 @@ const addUserIds = async (req, res) => {
       return res.status(400).json({ message: "Both userId and targetUserId are required" });
     }
 
+    // Find the PageOwner document
+    const pageOwner = await PageOwner.findOne({ userId });
+    if (!pageOwner) {
+      return res.status(404).json({ message: "PageOwner not found" });
+    }
+
+    // Check if the targetUserId is already in the collection
     let user = await CollectionofUser.findOne({ userId });
     if (!user) {
       // Create a new document if it doesn't exist
       user = new CollectionofUser({ userId, collectionOfUserId: [] });
     }
 
-    // Add targetUserId to the collection, ensuring uniqueness
     if (!user.collectionOfUserId.includes(targetUserId)) {
+      // Deduct 1 LinkCoin if targetUserId is not in the collection
+      if (pageOwner.linkCoins < 1) {
+        return res.status(400).json({ message: "Insufficient LinkCoins" });
+      }
+
+      pageOwner.linkCoins -= 1; // Deduct 1 LinkCoin
+      await pageOwner.save(); // Save the updated PageOwner document
+
+      // Add targetUserId to the collection
       user.collectionOfUserId.push(targetUserId);
+      await user.save();
     }
 
-    await user.save();
-
-    res.json({ message: "Target User ID added successfully", user });
+    res.json({ message: "Target User ID added successfully", user, linkCoins: pageOwner.linkCoins });
   } catch (error) {
     console.error("Error in addUserIds:", error.message);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+module.exports = { addUserIds };
 
 // Remove userIds from a specific userId
 const deleteUserIds = async (req, res) => {
