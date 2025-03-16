@@ -60,6 +60,8 @@ const updateUser = async (req, res) => {
     pricing,
     pastPosts,
     profilePicUrl,
+    averageAudienceType,
+    averageLocationOfAudience,
   } = req.body;
 
   try {
@@ -77,18 +79,38 @@ const updateUser = async (req, res) => {
     if (mobile) user.mobile = mobile;
     if (whatsapp) user.whatsapp = whatsapp;
     if (profilePicUrl) user.profilePicUrl = profilePicUrl;
+    
     if (socialMediaPlatforms && socialMediaPlatforms.length > 0) {
       user.socialMediaPlatforms = socialMediaPlatforms;
     }
+    
     if (profileDetails && profileDetails.length > 0) {
-      user.profileDetails = profileDetails;
+      user.profileDetails = profileDetails.map((detail, index) => ({
+        platform: detail.platform || user.profileDetails[index]?.platform,
+        profileName: detail.profileName || user.profileDetails[index]?.profileName,
+        profilePicUrl: detail.profilePicUrl || user.profileDetails[index]?.profilePicUrl,
+        profileDashboardPic: detail.profileDashboardPic || user.profileDetails[index]?.profileDashboardPic,
+        followers: detail.followers || user.profileDetails[index]?.followers,
+        verified: detail.verified !== undefined ? detail.verified : user.profileDetails[index]?.verified,
+      }));
     }
+
     if (adCategories && adCategories.length > 0) {
       user.adCategories = adCategories;
     }
+    
     if (pageContentCategory && pageContentCategory.length > 0) {
       user.pageContentCategory = pageContentCategory;
     }
+    
+    if (averageAudienceType && averageAudienceType.length > 0) {
+      user.averageAudienceType = averageAudienceType;
+    }
+
+    if (averageLocationOfAudience && averageLocationOfAudience.length > 0) {
+      user.averageLocationOfAudience = averageLocationOfAudience;
+    }
+
     if (pricing) {
       user.pricing = {
         storyPost: pricing.storyPost || user.pricing.storyPost,
@@ -96,6 +118,7 @@ const updateUser = async (req, res) => {
         reel: pricing.reel || user.pricing.reel,
       };
     }
+
     if (pastPosts && pastPosts.length > 0) {
       user.pastPosts = pastPosts;
     }
