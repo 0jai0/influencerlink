@@ -107,35 +107,7 @@ const setupSocket = (io) => {
       }
     });
 
-    // Handle marking messages as "read"
-    socket.on("message_read", async ({ sender, receiver }) => {
-      try {
-        if (!mongoose.isValidObjectId(sender) || !mongoose.isValidObjectId(receiver)) {
-          return console.error("Invalid sender or receiver ID");
-        }
-
-        // Update sender's thread (mark messages as read)
-        await Message.updateOne(
-          { sender, receiver, "chat.status": "sent" },
-          { $set: { "chat.$[elem].status": "read" } },
-          { arrayFilters: [{ "elem.status": "sent" }] }
-        );
-
-        // Update receiver's thread (mark messages as read)
-        await Message.updateOne(
-          { sender: receiver, receiver: sender, "chat.status": "received" },
-          { $set: { "chat.$[elem].status": "read" } },
-          { arrayFilters: [{ "elem.status": "received" }] }
-        );
-
-        // Notify sender that their message was read
-        io.to(sender).emit("message_read", { sender, receiver });
-
-        console.log(`Messages from ${sender} to ${receiver} marked as read`);
-      } catch (error) {
-        console.error("Error updating message status to read:", error);
-      }
-    });
+    
 
     // Handle user disconnecting
     socket.on("disconnect", async () => {
