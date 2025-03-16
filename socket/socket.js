@@ -1,40 +1,25 @@
-const Message = require("../models/Message");
-const User = require("../models/User"); // Assuming you have a User model
-const mongoose = require("mongoose");
+const Message = require('../models/Message');
 
 const setupSocket = (io) => {
-  io.on("connection", (socket) => {
-    console.log("New client connected:", socket.id);
+  io.on('connection', (socket) => {
+    console.log('New client connected:', socket.id);
 
-    // Handle user joining their private room
-    socket.on("join", async (userId) => {
+    // Join user's private room
+    socket.on('join', (userId) => {
       if (userId) {
         socket.join(userId);
         console.log(`User ${userId} joined their room`);
-
-        // Update user's online status
-        try {
-          if (mongoose.isValidObjectId(userId)) {
-            await User.findByIdAndUpdate(userId, { isOnline: true }, { new: true });
-            console.log(`User ${userId} is now online`);
-            io.emit("user_status", { userId, isOnline: true }); // Notify all clients
-          } else {
-            console.error(`Invalid userId: ${userId}`);
-          }
-        } catch (error) {
-          console.error("Error updating user online status:", error);
-        }
       }
     });
 
     // Handle sending messages
-    socket.on("send_message", async (data, callback) => {
+    socket.on('send_message', async (data, callback) => {
       try {
         const { sender, receiver, content } = data;
 
         // Validate incoming data
         if (!sender || !receiver || !content) {
-          callback({ status: "error", error: "Invalid message data" });
+          callback({ status: 'error', error: 'Invalid message data' });
           return;
         }
 
@@ -45,7 +30,7 @@ const setupSocket = (io) => {
           // Add the new message to the existing chat array
           messageThread.chat.push({
             content,
-            status: "sent",
+            status: 'sent',
             timestamp: new Date(),
           });
           await messageThread.save();
@@ -57,33 +42,32 @@ const setupSocket = (io) => {
             chat: [
               {
                 content,
-                status: "sent",
+                status: 'sent',
                 timestamp: new Date(),
               },
             ],
           });
           await messageThread.save();
         }
-
-        let messageThread1 = await Message.findOne({ sender: receiver, receiver: sender });
+        let messageThread1 = await Message.findOne({ sender:receiver, receiver:sender });
 
         if (messageThread1) {
           // Add the new message to the existing chat array
           messageThread1.chat.push({
             content,
-            status: "received",
+            status: 'received',
             timestamp: new Date(),
           });
           await messageThread1.save();
         } else {
           // Create a new message thread if none exists
           messageThread1 = new Message({
-            sender: receiver,
-            receiver: sender,
+            sender:receiver,
+            receiver:sender,
             chat: [
               {
                 content,
-                status: "received",
+                status: 'received',
                 timestamp: new Date(),
               },
             ],
@@ -92,41 +76,26 @@ const setupSocket = (io) => {
         }
 
         // Emit the message to the receiver's room
-        io.to(receiver).emit("receive_message", {
+        io.to(receiver).emit('receive_message', {
           sender,
           receiver,
           content,
           timestamp: new Date(),
-          status: "received",
+          status: 'received',
         });
 
-        callback({ status: "ok", message: messageThread }); // Acknowledge success
+        
+
+        callback({ status: 'ok', message: messageThread }); // Acknowledge success
       } catch (error) {
-        console.error("Error saving message:", error);
-        callback({ status: "error", error: "Failed to save message" });
+        console.error('Error saving message:', error);
+        callback({ status: 'error', error: 'Failed to save message' });
       }
     });
 
-    
-
-    // Handle user disconnecting
-    socket.on("disconnect", async () => {
-      console.log("Client disconnected:", socket.id);
-
-      // Find user who disconnected
-      const userRooms = [...socket.rooms].filter((room) => room !== socket.id);
-
-      for (const userId of userRooms) {
-        try {
-          if (mongoose.isValidObjectId(userId)) {
-            await User.findByIdAndUpdate(userId, { isOnline: false });
-            console.log(`User ${userId} is now offline`);
-            io.emit("user_status", { userId, isOnline: false }); // Notify all clients
-          }
-        } catch (error) {
-          console.error("Error updating user offline status:", error);
-        }
-      }
+    // Handle disconnects
+    socket.on('disconnect', () => {
+      console.log('Client disconnected:', socket.id);
     });
   });
 };
