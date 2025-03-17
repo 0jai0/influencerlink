@@ -1,12 +1,17 @@
 const mongoose = require('mongoose');
 
 const pageOwnerSchema = new mongoose.Schema({
-    ownerName: { type: String, required: true },
+    ownerName: { type: String },
     profilePicUrl: { type: String },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    mobile: { type: String, required: true },
+    mobile: { type: String },
     whatsapp: { type: String },
+    role: { 
+        type: String, 
+        enum: ['influencer', 'user','admin'], 
+        required: true 
+    }, 
     socialMediaPlatforms: {
         type: [String],
         enum: ['Instagram', 'Facebook', 'Twitter', 'YouTube', 'WhatsApp'],

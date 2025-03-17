@@ -4,10 +4,13 @@ const User = require("../../models/PageUser");
 const mongoose = require('mongoose');
 //register
 const registerUser = async (req, res) => {
-  const { ownerName, email, password, mobile } = req.body;
+  const { ownerName, email, password, mobile, role } = req.body;
 
   try {
+    // Convert email to lowercase for consistency
     const lowerCaseEmail = email.toLowerCase();
+
+    // Check if the user already exists
     const checkUser = await User.findOne({ email: lowerCaseEmail });
     if (checkUser) {
       return res.json({
@@ -16,15 +19,29 @@ const registerUser = async (req, res) => {
       });
     }
 
+    // Validate role (ensure it's either 'influencer' or 'user')
+    if (!['influencer', 'user'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role. Role must be either 'influencer' or 'user'.",
+      });
+    }
+
+    // Hash password before saving
     const hashPassword = await bcrypt.hash(password, 12);
+
+    // Create new user with role
     const newUser = new User({
-      ownerName: ownerName,
-      email: lowerCaseEmail, // Save email in lowercase
+      ownerName,
+      email: lowerCaseEmail,
       password: hashPassword,
       mobile,
+      role, // Store role
     });
 
     await newUser.save();
+
+    // Respond with success message
     res.status(200).json({
       success: true,
       message: "User registered successfully!",
@@ -33,6 +50,7 @@ const registerUser = async (req, res) => {
         ownerName: newUser.ownerName,
         email: newUser.email,
         mobile: newUser.mobile,
+        role: newUser.role, // Return role in response
       },
     });
   } catch (error) {
@@ -148,46 +166,55 @@ const loginUser = async (req, res) => {
   try {
     const lowerCaseEmail = email.toLowerCase();
     const checkUser = await User.findOne({ email: lowerCaseEmail });
-    if (!checkUser)
-      
-      return res.json({
-    
-        success: false,
-        message: "User doesn't exists! Please register first",
-      });
-    const checkPasswordMatch = await bcrypt.compare(
-      password,
-      checkUser.password
-    );
-    if (!checkPasswordMatch)
+
+    if (!checkUser) {
       return res.json({
         success: false,
-        message: "Incorrect password! Please try again",
+        message: "User doesn't exist! Please register first.",
       });
+    }
+
+    const checkPasswordMatch = await bcrypt.compare(password, checkUser.password);
+    if (!checkPasswordMatch) {
+      return res.json({
+        success: false,
+        message: "Incorrect password! Please try again.",
+      });
+    }
+
+    // Generate JWT Token
     const token = jwt.sign(
       {
         id: checkUser._id,
         role: checkUser.role,
         email: checkUser.email,
-        userName: checkUser.userName,
+        userName: checkUser.ownerName, // Ensure it's `ownerName` since your schema uses this
       },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "30d" }
     );
-    res.cookie("token", token, { httpOnly: true, secure: false,sameSite: "None" }).json({
+
+    // Set the token in cookies
+    res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "None" }).json({
       success: true,
+      message: "Logged in successfully.",
       token: token,
-      message: "Logged in successfully",
-      user:checkUser,
+      user: {
+        id: checkUser._id,
+        ownerName: checkUser.ownerName,
+        email: checkUser.email,
+        role: checkUser.role, // Explicitly return role
+      },
     });
   } catch (e) {
-    console.log(e);
+    console.error(e);
     res.status(500).json({
       success: false,
-      message: "Some error occured",
+      message: "Some error occurred.",
     });
   }
 };
+
 
 
 
