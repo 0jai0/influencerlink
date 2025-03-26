@@ -2,6 +2,69 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/PageUser");
 const mongoose = require('mongoose');
+const { OAuth2Client } = require('google-auth-library');
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// authController.js
+const googleLogin = async (req, res) => {
+  const { credential } = req.body;
+  
+  try {
+    // Verify the Google ID token
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID, // Your Google client ID
+    });
+    
+    const payload = ticket.getPayload();
+    const { email, name, sub: googleId } = payload;
+
+    // Check if user exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user if doesn't exist
+      user = new User({
+        ownerName: name,
+        email,
+        password: googleId, // Store Google ID as password (you might want to handle this differently)
+        role: 'influencer', // Default role
+        isGoogleAuth: true // Flag to identify Google-authenticated users
+      });
+      await user.save();
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email,
+        userName: user.ownerName,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+
+    res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "None" }).json({
+      success: true,
+      message: "Logged in successfully with Google.",
+      token: token,
+      user: {
+        id: user._id,
+        ownerName: user.ownerName,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({
+      success: false,
+      message: "Google authentication failed.",
+    });
+  }
+};
 //register
 const registerUser = async (req, res) => {
   const { ownerName, email, password, mobile, role } = req.body;
@@ -336,4 +399,4 @@ const authMiddleware = (req, res, next) => {
 
 
 
-module.exports = {getUserById,getAllUsers, updateUser,registerUser, loginUser, logoutUser, authMiddleware,forgotPassword };
+module.exports = {getUserById,getAllUsers, googleLogin,updateUser,registerUser, loginUser, logoutUser, authMiddleware,forgotPassword };

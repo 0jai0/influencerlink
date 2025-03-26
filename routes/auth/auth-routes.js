@@ -8,6 +8,7 @@ const {
   updateUser,
   getAllUsers ,
   getUserById,
+  googleLogin,
 } = require("../../controllers/auth/auth-controller");
 const User = require("../../models/PageUser"); 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.post("/logout", logoutUser);
 router.put('/updateUser/:userId', updateUser);
 router.get('/users', getAllUsers);
 router.get('/user/:id', getUserById);
+router.post('/google', googleLogin);
 // In auth-routes.js
 router.get("/check-auth", authMiddleware, async (req, res) => {
   try {
