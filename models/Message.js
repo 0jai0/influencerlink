@@ -8,8 +8,13 @@ const messageSchema = new mongoose.Schema({
       content: { type: String, required: true },
       status: {
         type: String,
-        enum: ['sent', 'delivered', 'read','received'],
+        enum: ['sent', 'received'],
         default: 'sent',
+      },
+      messageStatus: {
+        type: String,
+        enum: ['unread', 'read'],  // New field
+        default: 'unread',
       },
       timestamp: { type: Date, default: Date.now }
     }

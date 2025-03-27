@@ -7,6 +7,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const setupSocket = require("./socket/socket.js");
+const cronJobs = require('./helpers/cronJobs.js');
 
 const collectionRoutes = require("./routes/message/collection.routes");
 const messageRoutes = require("./routes/message/message.routes.js");
@@ -20,7 +21,7 @@ const app = express();
 // ✅ Allowed Origins
 const allowedOrigins = [
   "http://localhost:3000", // Local Dev
-  "https://influencerlink-af410.firebaseapp.com" // Production Frontend
+  "https://lnfluencerlink.com" // Production Frontend
 ];
 
 // ✅ CORS Middleware (Put this FIRST)

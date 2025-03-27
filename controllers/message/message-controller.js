@@ -6,19 +6,19 @@ const sendMessage = async (req, res) => {
   const { sender, receiver, content } = req.body;
 
   try {
+    const timestamp = new Date();
+
     // Check if a message between sender and receiver already exists (A to B)
     let messageAtoB = await Message.findOne({ sender, receiver });
 
     if (messageAtoB) {
-      // Add the new message to the existing chat
-      messageAtoB.chat.push({ content, status: 'sent', timestamp: new Date() });
+      messageAtoB.chat.push({ content, status: 'sent', messageStatus: 'unread', timestamp });
       await messageAtoB.save();
     } else {
-      // Create a new message if no existing chat is found
       messageAtoB = new Message({
         sender,
         receiver,
-        chat: [{ content, status: 'sent', timestamp: new Date() }]
+        chat: [{ content, status: 'sent', messageStatus: 'unread', timestamp }]
       });
       await messageAtoB.save();
     }
@@ -27,13 +27,13 @@ const sendMessage = async (req, res) => {
     let messageBtoA = await Message.findOne({ sender: receiver, receiver: sender });
 
     if (messageBtoA) {
-      messageBtoA.chat.push({ content, status: 'received', timestamp: new Date() });
+      messageBtoA.chat.push({ content, status: 'received', messageStatus: 'unread', timestamp });
       await messageBtoA.save();
     } else {
       messageBtoA = new Message({
         sender: receiver,
         receiver: sender,
-        chat: [{ content, status: 'recevied', timestamp: new Date() }]
+        chat: [{ content, status: 'received', messageStatus: 'unread', timestamp }]
       });
       await messageBtoA.save();
     }
@@ -43,6 +43,7 @@ const sendMessage = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 
 // Get conversation between two users
@@ -80,18 +81,22 @@ const getConversation = async (req, res) => {
 
 // Mark messages as read
 const markAsRead = async (req, res) => {
-  const { senderId, receiverId } = req.body;
+  const { sender, receiver } = req.body;
 
   try {
+    // Update all unread messages in the chat
     await Message.updateMany(
-      { sender: senderId, receiver: receiverId, status: { $ne: 'read' } },
-      { $set: { status: 'read' } }
+      { sender, receiver, "chat.messageStatus": "unread" },
+      { $set: { "chat.$[].messageStatus": "read" } } // Update all unread messages
     );
 
-    res.status(200).json({ success: true, message: "Messages marked as read" });
+    console.log("Messages marked as read");
+    res.status(200).json({ message: "Messages marked as read." });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Failed to update message status", error: error.message });
+    res.status(500).json({ error: error.message });
   }
 };
+
+
 
 module.exports = { sendMessage, getConversation, markAsRead };

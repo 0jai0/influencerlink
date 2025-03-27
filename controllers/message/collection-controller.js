@@ -9,45 +9,59 @@ const addUserIds = async (req, res) => {
     const { userId, targetUserId } = req.body; // Get both userId and targetUserId from the request body
 
     if (!userId || !targetUserId) {
-      console.log("ok");
       return res.status(400).json({ message: "Both userId and targetUserId are required" });
     }
-    console.log("ok1");
-    // Find the PageOwner document // Convert to ObjectId if necessary
-    const pageOwner = await PageOwner.findOne({ _id:userId });
+
+    // Find the PageOwner document
+    const pageOwner = await PageOwner.findOne({ _id: userId });
     if (!pageOwner) {
       return res.status(404).json({ message: "PageOwner not found" });
     }
-    console.log("ok2");
+
     // Check if the targetUserId is already in the collection
-    let user = await CollectionofUser.findOne({ userId });
-    if (!user) {
-      // Create a new document if it doesn't exist
-      user = new CollectionofUser({ userId, collectionOfUserId: [] });
+    let userA = await CollectionofUser.findOne({ userId });
+    if (!userA) {
+      userA = new CollectionofUser({ userId, collectionOfUserId: [] });
     }
-    console.log("ok3");
-    if (!user.collectionOfUserId.includes(targetUserId)) {
-      // Deduct 1 LinkCoin if targetUserId is not in the collection
-      console.log("ok5");
+
+    let userB = await CollectionofUser.findOne({ userId: targetUserId });
+    if (!userB) {
+      userB = new CollectionofUser({ userId: targetUserId, collectionOfUserId: [] });
+    }
+
+    // Check if the targetUserId is already in userA's collection
+    if (!userA.collectionOfUserId.includes(targetUserId)) {
       if (pageOwner.linkCoins < 1) {
         return res.status(400).json({ message: "Insufficient LinkCoins" });
       }
-      console.log("ok6");
 
-      pageOwner.linkCoins -= 1; // Deduct 1 LinkCoin
-      await pageOwner.save(); // Save the updated PageOwner document
+      // Deduct 1 LinkCoin
+      pageOwner.linkCoins -= 1;
+      await pageOwner.save();
 
-      // Add targetUserId to the collection
-      user.collectionOfUserId.push(targetUserId);
-      await user.save();
+      // Add targetUserId to userA's collection
+      userA.collectionOfUserId.push(targetUserId);
+      await userA.save();
+
+      // Add userId to userB's collection to make it bidirectional
+      if (!userB.collectionOfUserId.includes(userId)) {
+        userB.collectionOfUserId.push(userId);
+        await userB.save();
+      }
     }
-    console.log("ok4");
-    res.json({ message: "Target User ID added successfully", user, linkCoins: pageOwner.linkCoins });
+
+    res.json({
+      message: "Target User ID added successfully",
+      userA,
+      userB,
+      linkCoins: pageOwner.linkCoins,
+    });
   } catch (error) {
     console.error("Error in addUserIds:", error.message);
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
 
 
 // Remove userIds from a specific userId

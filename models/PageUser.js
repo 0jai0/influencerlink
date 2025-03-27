@@ -10,7 +10,6 @@ const pageOwnerSchema = new mongoose.Schema({
     role: { 
         type: String, 
         enum: ['influencer', 'user','admin'], 
-        required: true 
     }, 
     socialMediaPlatforms: {
         type: [String],
