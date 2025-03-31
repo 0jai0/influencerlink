@@ -284,11 +284,72 @@ const loginUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find().select('-password'); // Exclude password
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+    const searchTerm = req.query.search?.trim() || '';
+
+    let query = { role: 'influencer' };
+
+    if (searchTerm) {
+      const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 2);
+      if (searchWords.length > 0) {
+        const regexArray = searchWords.map(word => new RegExp(word, 'i'));
+
+        query.$or = [
+          { ownerName: { $in: regexArray } },
+          { email: { $in: regexArray } },
+          { 'profileDetails.profileName': { $in: regexArray } },
+          { adCategories: { $in: regexArray } },
+          { pageContentCategory: { $in: regexArray } },
+          { averageAudienceType: { $in: regexArray } },
+          { averageLocationOfAudience: { $in: regexArray } },
+          { 'pastPosts.category': { $in: regexArray } }
+        ];
+      }
+    }
+
+    // Apply additional filters
+    if (req.query.adCategories) {
+      query.adCategories = { $in: req.query.adCategories.split(",") };
+    }
+    if (req.query.pageContentCategory) {
+      query.pageContentCategory = { $in: req.query.pageContentCategory.split(",") };
+    }
+    if (req.query.socialMediaPlatforms) {
+      query.socialMediaPlatforms = { $in: req.query.socialMediaPlatforms.split(",") };
+    }
+    if (req.query.averageAudienceType) {
+      query.averageAudienceType = { $in: req.query.averageAudienceType.split(",") };
+    }
+    if (req.query.averageLocationOfAudience) {
+      query.averageLocationOfAudience = { $in: req.query.averageLocationOfAudience.split(",") };
+    }
+
+    if (req.query.minFollowers || req.query.maxFollowers) {
+      const min = parseInt(req.query.minFollowers) || 0;
+      const max = parseInt(req.query.maxFollowers) || Infinity;
+      query["profileDetails.followers"] = { $gte: min, $lte: max };
+    }
+
+    if (req.query.minPrice || req.query.maxPrice) {
+      const min = parseFloat(req.query.minPrice) || 0;
+      const max = parseFloat(req.query.maxPrice) || Infinity;
+      query["pricing"] = { $gte: min, $lte: max };
+    }
+
+    const users = await User.find(query).select('-password').skip(skip).limit(limit);
+    const totalUsers = await User.countDocuments(query);
+    const totalPages = Math.ceil(totalUsers / limit);
+
     res.status(200).json({
       success: true,
+      page,
+      totalPages,
+      totalUsers,
       data: users,
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -297,6 +358,9 @@ const getAllUsers = async (req, res) => {
     });
   }
 };
+
+
+
 
 const getUserById = async (req, res) => {
   try {
