@@ -289,8 +289,10 @@ const getAllUsers = async (req, res) => {
     const skip = (page - 1) * limit;
     const searchTerm = req.query.search?.trim() || '';
 
+    // Base query with role fixed as 'influencer'
     let query = { role: 'influencer' };
 
+    // 🔍 Apply search filter
     if (searchTerm) {
       const searchWords = searchTerm.split(/\s+/).filter(word => word.length > 2);
       if (searchWords.length > 0) {
@@ -309,35 +311,38 @@ const getAllUsers = async (req, res) => {
       }
     }
 
-    // Apply additional filters
-    if (req.query.adCategories) {
-      query.adCategories = { $in: req.query.adCategories.split(",") };
-    }
-    if (req.query.pageContentCategory) {
-      query.pageContentCategory = { $in: req.query.pageContentCategory.split(",") };
-    }
-    if (req.query.socialMediaPlatforms) {
-      query.socialMediaPlatforms = { $in: req.query.socialMediaPlatforms.split(",") };
-    }
-    if (req.query.averageAudienceType) {
-      query.averageAudienceType = { $in: req.query.averageAudienceType.split(",") };
-    }
-    if (req.query.averageLocationOfAudience) {
-      query.averageLocationOfAudience = { $in: req.query.averageLocationOfAudience.split(",") };
-    }
+    // 📌 Apply additional filters dynamically
+    const filterFields = [
+      "adCategories",
+      "pageContentCategory",
+      "socialMediaPlatforms",
+      "averageAudienceType",
+      "averageLocationOfAudience"
+    ];
 
+    filterFields.forEach(field => {
+      if (req.query[field]) {
+        query[field] = { $in: req.query[field].split(",") };
+      }
+    });
+
+    // 🔢 Followers range filter
     if (req.query.minFollowers || req.query.maxFollowers) {
-      const min = parseInt(req.query.minFollowers) || 0;
-      const max = parseInt(req.query.maxFollowers) || Infinity;
-      query["profileDetails.followers"] = { $gte: min, $lte: max };
+      query["profileDetails.followers"] = {
+        ...(req.query.minFollowers && { $gte: parseInt(req.query.minFollowers) }),
+        ...(req.query.maxFollowers && { $lte: parseInt(req.query.maxFollowers) })
+      };
     }
 
+    // 💰 Pricing range filter
     if (req.query.minPrice || req.query.maxPrice) {
-      const min = parseFloat(req.query.minPrice) || 0;
-      const max = parseFloat(req.query.maxPrice) || Infinity;
-      query["pricing"] = { $gte: min, $lte: max };
+      query["pricing"] = {
+        ...(req.query.minPrice && { $gte: parseFloat(req.query.minPrice) }),
+        ...(req.query.maxPrice && { $lte: parseFloat(req.query.maxPrice) })
+      };
     }
 
+    // 🔄 Fetch users & count total users
     const users = await User.find(query).select('-password').skip(skip).limit(limit);
     const totalUsers = await User.countDocuments(query);
     const totalPages = Math.ceil(totalUsers / limit);
@@ -358,6 +363,7 @@ const getAllUsers = async (req, res) => {
     });
   }
 };
+
 
 
 
