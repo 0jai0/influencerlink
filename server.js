@@ -98,6 +98,6 @@ setupSocket(io);
 
 // ✅ Start Server
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {  // <-- Ensure it binds to all interfaces
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
