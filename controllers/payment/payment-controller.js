@@ -6,6 +6,11 @@ const PageOwner = require("../../models/PageUser");
 const config = require("./config.json");
 
 const { MERCHANT_KEY, MERCHANT_ID } = config;
+const packageBonuses = {
+  10: { base: 10, bonus: 1 },   // 10+1
+  25: { base: 25, bonus: 5 },   // 25+5
+  50: { base: 50, bonus: 12 }   // 50+12
+};
 
 const MERCHANT_BASE_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
 const MERCHANT_STATUS_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status";
@@ -17,7 +22,15 @@ const createPayment = async (req, res) => {
   try {
     const { userId, totalAmount } = req.body;
     const transactionId = new mongoose.Types.ObjectId().toString();
-    const linkCoinsToAdd = Math.floor(totalAmount / 5);
+    let linkCoinsToAdd;
+    if (packageBonuses[totalAmount]) {
+      const package = packageBonuses[totalAmount];
+      linkCoinsToAdd = package.base + package.bonus;
+    } else {
+      // Default calculation if no package selected (₹5 = 1 LinkCoin)
+      linkCoinsToAdd = Math.floor(totalAmount / 5);
+    }
+    
 
     const paymentTransaction = new PaymentTransaction({
       _id: transactionId,
