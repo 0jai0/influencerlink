@@ -7,9 +7,9 @@ const config = require("./config.json");
 
 const { MERCHANT_KEY, MERCHANT_ID } = config;
 const packageBonuses = {
-  10: { base: 10, bonus: 1 },   // 10+1
-  25: { base: 25, bonus: 5 },   // 25+5
-  50: { base: 50, bonus: 12 }   // 50+12
+  50: { base: 10, bonus: 1 },   // 10+1 for ₹50 (10×5)
+  125: { base: 25, bonus: 5 },  // 25+5 for ₹125 (25×5)
+  250: { base: 50, bonus: 12 }  // 50+12 for ₹250 (50×5)
 };
 
 const MERCHANT_BASE_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
