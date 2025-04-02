@@ -11,7 +11,7 @@ const {
   googleLogin,
   storeOtp,
   getOtpByUserId,
-  getOtpByProfileName,
+  getOtpByProfileName, 
   updateStatusToSend
 } = require("../../controllers/auth/auth-controller");
 const User = require("../../models/PageUser"); 
