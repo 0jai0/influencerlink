@@ -9,6 +9,10 @@ const {
   getAllUsers ,
   getUserById,
   googleLogin,
+  storeOtp,
+  getOtpByUserId,
+  getOtpByProfileName,
+  updateStatusToSend
 } = require("../../controllers/auth/auth-controller");
 const User = require("../../models/PageUser"); 
 const router = express.Router();
@@ -21,6 +25,10 @@ router.put('/updateUser/:userId', updateUser);
 router.get('/users', getAllUsers);
 router.get('/user/:id', getUserById);
 router.post('/google', googleLogin);
+router.put('/send-status', updateStatusToSend);
+router.post('/store', storeOtp);
+router.get('/get-by-userid', getOtpByUserId);
+router.get('/get-by-profile', getOtpByProfileName);
 // In auth-routes.js
 router.get("/check-auth", authMiddleware, async (req, res) => {
   try {

@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/PageUser");
+const InstaOtp = require('../../models/InstaOtp');
 const mongoose = require('mongoose');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -469,4 +470,167 @@ const authMiddleware = (req, res, next) => {
 
 
 
-module.exports = {getUserById,getAllUsers, googleLogin,updateUser,registerUser, loginUser, logoutUser, authMiddleware,forgotPassword };
+
+// Generate random 6-digit OTP
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Store OTP with userId and status
+const storeOtp = async (req, res) => {
+  try {
+    const { userId, profileName } = req.body;
+    
+    if (!userId || !profileName) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Both userId and profileName are required' 
+      });
+    }
+
+    const otpCode = generateOTP();
+    
+    // Create or update OTP record
+    const otp = await InstaOtp.findOneAndUpdate(
+      { userId, profileName },
+      { 
+        otp: otpCode,
+        status: 'pending',
+        createdAt: new Date() // Reset expiration timer
+      },
+      { 
+        new: true, 
+        upsert: true 
+      }
+    );
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'OTP stored successfully',
+      otp: otpCode, // Returning OTP for testing (remove in production)
+      record: otp
+    });
+  } catch (error) {
+    console.error('Error storing OTP:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to store OTP' 
+    });
+  }
+};
+
+// Get OTP by userId
+const getOtpByUserId = async (req, res) => {
+  try {
+    const { userId } = req.query;
+    
+    if (!userId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'User ID is required' 
+      });
+    }
+
+    const otpRecord = await InstaOtp.findOne({ userId });
+    
+    if (!otpRecord) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No OTP found for this user ID' 
+      });
+    }
+
+    res.status(200).json({ 
+      success: true,
+      userId: otpRecord.userId,
+      profileName: otpRecord.profileName,
+      otp: otpRecord.otp,
+      status: otpRecord.status,
+      createdAt: otpRecord.createdAt
+    });
+  } catch (error) {
+    console.error('Error fetching OTP by userId:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to retrieve OTP' 
+    });
+  }
+};
+
+// Get OTP by profileName
+const getOtpByProfileName = async (req, res) => {
+  try {
+    const { profileName } = req.query;
+    
+    if (!profileName) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Profile name is required' 
+      });
+    }
+
+    const otpRecord = await InstaOtp.findOne({ profileName });
+    
+    if (!otpRecord) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No OTP found for this profile name' 
+      });
+    }
+
+    res.status(200).json({ 
+      success: true,
+      userId: otpRecord.userId,
+      profileName: otpRecord.profileName,
+      otp: otpRecord.otp,
+      status: otpRecord.status,
+      createdAt: otpRecord.createdAt
+    });
+  } catch (error) {
+    console.error('Error fetching OTP by profileName:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to retrieve OTP' 
+    });
+  }
+};
+
+
+const updateStatusToSend = async (req, res) => {
+  try {
+    const { userId } = req.body; // or req.body depending on how you want to pass the userId
+
+    // Find the OTP record and update its status to 'send'
+    const updatedOtp = await InstaOtp.findOneAndUpdate(
+      { userId: userId },
+      { status: 'send' },
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedOtp) {
+      return res.status(404).json({
+        success: false,
+        message: 'OTP record not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Status updated to "send" successfully',
+      data: updatedOtp
+    });
+  } catch (error) {
+    console.error('Error updating status to send:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
+
+
+
+
+
+module.exports = {getUserById,getAllUsers, googleLogin,updateUser,registerUser, loginUser, logoutUser, authMiddleware,forgotPassword,storeOtp,
+  getOtpByUserId,
+  getOtpByProfileName,updateStatusToSend };
