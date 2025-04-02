@@ -14,7 +14,7 @@ const packageBonuses = {
 
 const MERCHANT_BASE_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/pay";
 const MERCHANT_STATUS_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox/pg/v1/status";
-const REDIRECT_URL = "https://influencerlink-418814689343.asia-south1.run.app/api/payment/pay-return-url";
+const REDIRECT_URL = "https://influencerlink-598325568359.us-central1.run.app/api/payment/pay-return-url";
 const SUCCESS_URL = "https://lnfluencerlink.com/payment-success";
 const FAILURE_URL = "https://lnfluencerlink.com/payment-failure";
 

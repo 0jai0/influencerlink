@@ -21,7 +21,8 @@ const app = express();
 // ✅ Allowed Origins
 const allowedOrigins = [ 
   "http://localhost:3000", // Local Dev
-  "https://lnfluencerlink.com" // Production Frontend
+  "https://lnfluencerlink.com", // Production Frontend,
+  "https://influencerlink-598325568359.us-central1.run.app"
 ];
 
 // ✅ CORS Middleware (Put this FIRST)
