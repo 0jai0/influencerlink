@@ -12,7 +12,7 @@ const {
   storeOtp,
   getOtpByUserId,
   getOtpByProfileName, 
-  updateStatusToSend
+  updateStatusToSend,getAllOtp
 } = require("../../controllers/auth/auth-controller");
 const User = require("../../models/PageUser"); 
 const router = express.Router();
@@ -29,6 +29,7 @@ router.put('/send-status', updateStatusToSend);
 router.post('/store', storeOtp);
 router.get('/get-by-userid', getOtpByUserId);
 router.get('/get-by-profile', getOtpByProfileName);
+router.get('/get-all', getAllOtp);
 // In auth-routes.js
 router.get("/check-auth", authMiddleware, async (req, res) => {
   try {

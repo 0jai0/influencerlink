@@ -627,10 +627,66 @@ const updateStatusToSend = async (req, res) => {
   }
 };
 
+// @desc    Get all OTP records
+// @route   GET /api/pageowners/otp/get-all
+// @access  Private/Admin
+const getAllOtp = async (req, res) => {
+  try {
+    // Extract query parameters
+    const { 
+      page = 1, 
+      limit = 10,
+      status,
+      userId,
+      profileName,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
 
+    // Build filter object
+    const filter = {};
+    if (status) filter.status = status;
+    if (userId) filter.userId = userId;
+    if (profileName) filter.profileName = { $regex: profileName, $options: 'i' };
+
+    // Build sort object
+    const sort = {};
+    sort[sortBy] = sortOrder === 'desc' ? -1 : 1;
+
+    // Execute query with pagination
+    const otps = await InstaOtp.find(filter)
+      .sort(sort)
+      .limit(parseInt(limit))
+      .skip((page - 1) * limit)
+      .select('-__v') // Exclude version key
+      .lean();
+
+    // Get total count for pagination info
+    const total = await InstaOtp.countDocuments(filter);
+
+    res.status(200).json({
+      success: true,
+      data: otps,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
+
+  } catch (error) {
+    console.error('Error fetching OTPs:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch OTP records',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
 
 
 
 module.exports = {getUserById,getAllUsers, googleLogin,updateUser,registerUser, loginUser, logoutUser, authMiddleware,forgotPassword,storeOtp,
   getOtpByUserId,
-  getOtpByProfileName,updateStatusToSend };
+  getOtpByProfileName,updateStatusToSend,getAllOtp };
