@@ -596,12 +596,12 @@ const getOtpByProfileName = async (req, res) => {
 
 const updateStatusToSend = async (req, res) => {
   try {
-    const { userId } = req.body; // or req.body depending on how you want to pass the userId
+    const { userId, status } = req.body; // or req.body depending on how you want to pass the userId
 
     // Find the OTP record and update its status to 'send'
     const updatedOtp = await InstaOtp.findOneAndUpdate(
       { userId: userId },
-      { status: 'send' },
+      { status: status },
       { new: true } // Return the updated document
     );
 
