@@ -477,9 +477,9 @@ const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString()
 // Store OTP with userId and status
 const storeOtp = async (req, res) => {
   try {
-    const { userId, profileName } = req.body;
+    const { userId, profileName,profileUrl } = req.body;
     
-    if (!userId || !profileName) {
+    if (!userId || !profileName || !profileUrl) {
       return res.status(400).json({ 
         success: false, 
         message: 'Both userId and profileName are required' 
@@ -490,7 +490,7 @@ const storeOtp = async (req, res) => {
     
     // Create or update OTP record
     const otp = await InstaOtp.findOneAndUpdate(
-      { userId, profileName },
+      { userId, profileName,profileUrl },
       { 
         otp: otpCode,
         status: 'pending',

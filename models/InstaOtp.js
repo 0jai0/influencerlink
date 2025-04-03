@@ -9,7 +9,9 @@ const otpSchema = new mongoose.Schema({
   profileName: {
     type: String,
     required: true
-    
+  },
+  profileUrl: {
+    type: String
   },
   otp: {
     type: String,
@@ -17,14 +19,17 @@ const otpSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending','send', 'verified', 'expired'],
+    enum: ['pending', 'send', 'verified', 'expired'],
     default: 'pending'
   },
   createdAt: {
     type: Date,
     default: Date.now,
-    expires: 1296000  
+    index: { expires: '15d' } // More readable format (15 days)
   }
 });
+
+// Explicitly create the index if needed
+otpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 1296000 });
 
 module.exports = mongoose.model('InstaOtp', otpSchema);
