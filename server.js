@@ -8,7 +8,7 @@ const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const setupSocket = require("./socket/socket.js");
 const cronJobs = require('./helpers/cronJobs.js');
-
+const PageOwner = require("./models/PageUser"); 
 const collectionRoutes = require("./routes/message/collection.routes");
 const messageRoutes = require("./routes/message/message.routes.js");
 const authRouter = require("./routes/auth/auth-routes");
@@ -81,6 +81,24 @@ app.get("/", (req, res) => {
 
 app.get("/api", (req, res) => {
   res.json({ message: "This is an API response." });
+});
+
+// server.js (Node.js/Express)
+app.get('/sitemap-dynamic.xml', async (req, res) => {
+  const users = await PageOwner.find(); // Fetch users from DB
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>
+    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+
+  users.forEach(user => {
+    xml += `
+      <url>
+        <loc>https://promoterlink.com/Profile/${user._id}</loc>
+        <lastmod>${user.updatedAt.toISOString().split('T')[0]}</lastmod>
+      </url>`;
+  });
+
+  xml += `</urlset>`;
+  res.header('Content-Type', 'application/xml').send(xml);
 });
 
 // ✅ Create HTTP Server for Socket.IO
