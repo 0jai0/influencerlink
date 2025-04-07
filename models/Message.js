@@ -20,7 +20,7 @@ const messageSchema = new mongoose.Schema({
         type: Number,
         default:0
       },
-      timestamp: { type: Date, default: Date.now }
+      timestamp: { type: Date, default: Date.now,expires: 1296000 }
     }
   ]
 }, { timestamps: true });
