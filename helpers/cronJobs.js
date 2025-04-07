@@ -135,7 +135,7 @@ cron.schedule("0 17 * * *", async () => {
               await msg.save();
               console.log(`Successfully removed sender (${msg.sender._id}) from receiver's (${msg.receiver._id}) collection`);
               } catch (error) {
-                console.error(`Error removing contact ${msg.receiver._id} from ${msg.sender._id}'s collection:`, error);
+                console.log(`Error removing contact ${msg.receiver._id} from ${msg.sender._id}'s collection:`, error);
               }
             }
         }
@@ -204,14 +204,14 @@ View message: https://promoterlink.com/MessagingApp/${msg.receiver._id}
           
           //console.log(`Sent daily notification to ${msg.receiver.email}`);
         } catch (error) {
-          console.error(`Failed to send to ${msg.receiver.email}:`, error);
+          console.log(`Failed to send to ${msg.receiver.email}:`, error);
         }
       }
     }
 
     //console.log(`Daily notifications sent to ${notifiedUsers.size} users`);
   } catch (error) {
-    console.error("Daily notification job failed:", error);
+    console.log("Daily notification job failed:", error);
   }
 });
 
