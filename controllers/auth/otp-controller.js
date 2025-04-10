@@ -23,6 +23,29 @@ const sendOtp = async (req, res) => {
             { upsert: true, new: true }
         );
 
+        // Email content
+        const mailOptions = {
+            from: '"PromoterLink Support" <support@promoterlink.com>',
+            to: userId,
+            subject: 'Your OTP for PromoterLink Registration',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2BFFF8;">PromoterLink Registration</h2>
+                    <p>Your One-Time Password (OTP) for registration is:</p>
+                    <h3 style="background: #59FFA7; display: inline-block; padding: 10px 20px; border-radius: 5px;">
+                        ${otp}
+                    </h3>
+                    <p>This OTP is valid for 15 minutes. Please do not share it with anyone.</p>
+                    <p>If you didn't request this, please ignore this email.</p>
+                    <hr>
+                    <p>Best regards,<br>The PromoterLink Team</p>
+                </div>
+            `
+        };
+
+        // Send email
+        await transporter.sendMail(mailOptions);
+
         // TODO: Send OTP to the user via email/SMS (not implemented here)
 
         res.json({ success: true, message: "OTP sent successfully!", otp }); // Sending OTP for testing (remove in production)
