@@ -68,7 +68,7 @@ const sendOtp = async (req, res) => {
 
 // Get OTP details
 const getOtpDetails = async (req, res) => {
-    const { userId } = req.body; // Use req.query instead of req.body
+    const { userId } = req.query; // Use req.query instead of req.body
 
     try {
         const otpData = await Otp.findOne({ userId });
