@@ -8,9 +8,9 @@ const sendOtp = async (req, res) => {
     const { userId } = req.body;
 
     try {
-        const user = await PageOwner.findOne(userId);
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
+        const user = await PageOwner.findOne({email:userId});
+        if (user) {
+            return res.status(404).json({ success: false, message: "Email already registered. Please login instead." });
         }
 
         // Generate a random 4-digit OTP
