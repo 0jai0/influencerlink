@@ -8,7 +8,7 @@ const sendOtp = async (req, res) => {
     const { userId } = req.body;
 
     try {
-        const user = await PageOwner.findById(userId);
+        const user = await PageOwner.findOne(userId);
         if (!user) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
