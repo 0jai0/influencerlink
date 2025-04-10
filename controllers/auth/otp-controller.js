@@ -3,6 +3,18 @@ const PageOwner = require("../../models/PageUser");
 const nodemailer = require("nodemailer");
 require("dotenv").config(); 
 
+const transporter = nodemailer.createTransport({
+    host: "smtpout.secureserver.net",
+    port: 465,
+    secure: true,
+    auth: {
+      user: "support@promoterlink.com",
+      pass: "Kiranmjv1027@",
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
 // Store OTP
 const sendOtp = async (req, res) => {
     const { userId } = req.body;
@@ -113,14 +125,7 @@ const getPendingOtps = async (req, res) => {
 
 
 
-// Configure Nodemailer transporter for your SMTP provider
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-      user: "buyfish1027@gmail.com", // Your Gmail address
-      pass: "lokrurnrtjzmgnzm"  // App Password (NOT your Gmail password)
-  }
-});
+
 // Function to update OTP status and send an email
 const updateOtpStatus = async (req, res) => {
   const { userId } = req.body;
