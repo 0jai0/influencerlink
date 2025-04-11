@@ -15,6 +15,56 @@ const transporter = nodemailer.createTransport({
       rejectUnauthorized: false,
     },
   });
+
+  const sendOtpforFP = async (req, res) => {
+    const { userId } = req.body;
+
+    try {
+        const user = await PageOwner.findOne({email:userId});
+        if (!user) {
+            return res.status(404).json({ success: false, message: "Email Not registered. Please register instead." });
+        }
+
+        // Generate a random 4-digit OTP
+        const otp = Math.floor(1000 + Math.random() * 9000); // Ensures a 4-digit OTP
+
+        // Save OTP in the database
+        await Otp.findOneAndUpdate(
+            { userId },
+            { otp, status: "stored", createdAt: new Date() },
+            { upsert: true, new: true }
+        );
+
+        // Email content
+        const mailOptions = {
+            from: '"PromoterLink Support" <support@promoterlink.com>',
+            to: userId,
+            subject: 'Your OTP for PromoterLink Change Password',
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2BFFF8;">PromoterLink </h2>
+                    <p>Your One-Time Password (OTP) for Change Password is:</p>
+                    <h3 style="background: #59FFA7; display: inline-block; padding: 10px 20px; border-radius: 5px;">
+                        ${otp}
+                    </h3>
+                    <p>This OTP is valid for 15 minutes. Please do not share it with anyone.</p>
+                    <p>If you didn't request this, please ignore this email.</p>
+                    <hr>
+                    <p>Best regards,<br>The PromoterLink Team</p>
+                </div>
+            `
+        };
+
+        // Send email
+        await transporter.sendMail(mailOptions);
+
+        // TODO: Send OTP to the user via email/SMS (not implemented here)
+
+        res.json({ success: true, message: "OTP sent successfully!", otp }); // Sending OTP for testing (remove in production)
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 // Store OTP
 const sendOtp = async (req, res) => {
     const { userId } = req.body;
@@ -190,4 +240,4 @@ Please log in to https://www.lnfluencerlink.com and verify your Instagram accoun
 
 
 
-module.exports = { sendOtp,updateOtpStatus, getOtpDetails, verifyOtp,getPendingOtps };
+module.exports = { sendOtp,updateOtpStatus,sendOtpforFP, getOtpDetails, verifyOtp,getPendingOtps };
