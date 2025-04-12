@@ -1,21 +1,27 @@
 const CollectionofUser = require("../../models/CollectionofUsers");
 const PageOwner = require("../../models/PageUser"); // Import the PageOwner model
 const mongoose = require('mongoose');
+const nodemailer = require("nodemailer");
 
 
 // Add userIds to a specific userId
 const addUserIds = async (req, res) => {
   try {
-    const { userId, targetUserId } = req.body; // Get both userId and targetUserId from the request body
+    const { userId, targetUserId } = req.body;
 
     if (!userId || !targetUserId) {
       return res.status(400).json({ message: "Both userId and targetUserId are required" });
     }
 
-    // Find the PageOwner document
+    // Find both PageOwner documents
     const pageOwner = await PageOwner.findById(userId);
+    const targetPageOwner = await PageOwner.findById(targetUserId);
+    
     if (!pageOwner) {
       return res.status(404).json({ message: "PageOwner not found" });
+    }
+    if (!targetPageOwner) {
+      return res.status(404).json({ message: "Target PageOwner not found" });
     }
 
     // Check if userA exists, otherwise create it
@@ -50,6 +56,33 @@ const addUserIds = async (req, res) => {
       if (!isUserBAdded) {
         userB.collectionOfUserId.push({ user: userId, status: 'active' });
         await userB.save();
+
+        // Send email notification to target user
+        try {
+          const mailOptions = {
+            from: 'support@promoterlink.com',
+            to: targetPageOwner.email, // Assuming PageOwner has an email field
+            subject: 'New Collaboration Request',
+            html: `
+              <p>Dear ${targetPageOwner.ownerName},</p>
+              
+              <p>We're pleased to inform you that ${pageOwner.ownerName} has added you as a collaborator on PromoterLink.</p>
+              
+              <p>This connection opens up opportunities for mutual collaboration and networking. You can now start communicating directly through the platform.</p>
+              
+              <p>Visit your dashboard to view this new connection and start the conversation: <a href="https://www.promoterlink.com">PromoterLink Website</a></p>
+              
+              <p>Best regards,<br>
+              The PromoterLink Team</p>
+            `
+          };
+
+          await transporter.sendMail(mailOptions);
+          console.log(`Notification email sent to ${targetPageOwner.email}`);
+        } catch (emailError) {
+          console.error("Error sending email notification:", emailError);
+          // Don't fail the whole operation if email fails
+        }
       }
     }
 
@@ -64,6 +97,19 @@ const addUserIds = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+const transporter = nodemailer.createTransport({
+  host: "smtpout.secureserver.net",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "support@promoterlink.com",
+    pass: "Kiranmjv1027@",
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
 
 
 const updateDate = async (userId, targetUserId) => {
@@ -185,7 +231,7 @@ const renewConnection = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
-
+ 
 
 // Remove userIds from a specific userId
 const deleteUserIds = async (req, res) => {
