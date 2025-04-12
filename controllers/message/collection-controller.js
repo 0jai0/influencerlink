@@ -64,17 +64,81 @@ const addUserIds = async (req, res) => {
             to: targetPageOwner.email, // Assuming PageOwner has an email field
             subject: 'New Collaboration Request',
             html: `
-              <p>Dear ${targetPageOwner.ownerName},</p>
-              
-              <p>We're pleased to inform you that ${pageOwner.ownerName} has added you as a collaborator on PromoterLink.</p>
-              
-              <p>This connection opens up opportunities for mutual collaboration and networking. You can now start communicating directly through the platform.</p>
-              
-              <p>Visit your dashboard to view this new connection and start the conversation: <a href="https://www.promoterlink.com">PromoterLink Website</a></p>
-              
-              <p>Best regards,<br>
-              The PromoterLink Team</p>
-            `
+<div style="
+  font-family: 'Arial', sans-serif;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0,0,0,0.1);
+  border: 1px solid #e0e0e0;
+">
+  <!-- Header -->
+  <div style="
+    padding: 25px;
+    background: linear-gradient(135deg, #4361ee, #3a0ca3);
+    color: white;
+    text-align: center;
+  ">
+    <h1 style="margin: 0; font-size: 24px;">New Collaboration on PromoterLink</h1>
+  </div>
+  
+  <!-- Content -->
+  <div style="padding: 30px; line-height: 1.6; color: #333333; background-color: #ffffff;">
+    <p style="margin-bottom: 20px;">Dear ${targetPageOwner.ownerName},</p>
+    
+    <div style="
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      border-left: 4px solid #4361ee;
+    ">
+      <p style="margin: 0; font-weight: bold; color: #4361ee;">
+        ${pageOwner.ownerName} wants to collaborate with you!
+      </p>
+    </div>
+    
+    <p style="margin-bottom: 15px;">
+      We're excited to inform you that <strong>${pageOwner.ownerName}</strong> has added you as a collaborator on PromoterLink.
+    </p>
+    
+    <p style="margin-bottom: 15px;">
+      This new connection opens up opportunities for mutual growth, collaboration, and networking. You can now communicate directly through our platform.
+    </p>
+    
+    <div style="text-align: center; margin: 25px 0;">
+      <a href="https://promoterlink.com" style="
+        display: inline-block;
+        padding: 12px 25px;
+        background-color: #4361ee;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        font-weight: bold;
+      ">View Connection in Dashboard</a>
+    </div>
+    
+    <p style="margin-bottom: 5px;">Best regards,</p>
+    <p style="margin: 0; font-weight: bold;">The PromoterLink Team</p>
+  </div>
+  
+  <!-- Footer -->
+  <div style="
+    padding: 15px;
+    text-align: center;
+    font-size: 12px;
+    color: #777777;
+    background-color: #f5f5f5;
+  ">
+    <p style="margin: 5px 0;">© ${new Date().getFullYear()} PromoterLink. All rights reserved.</p>
+    <p style="margin: 5px 0;">
+      <a href="https://promoterlink.com/privacy" style="color: #4361ee; text-decoration: none;">Privacy Policy</a> | 
+      <a href="https://promoterlink.com/terms" style="color: #4361ee; text-decoration: none;">Terms of Service</a>
+    </p>
+  </div>
+</div>
+`
           };
 
           await transporter.sendMail(mailOptions);
