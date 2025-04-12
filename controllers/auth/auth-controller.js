@@ -5,7 +5,21 @@ const InstaOtp = require('../../models/InstaOtp');
 const mongoose = require('mongoose');
 const { OAuth2Client } = require('google-auth-library');
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const nodemailer = require("nodemailer");
 
+
+const transporter = nodemailer.createTransport({
+  host: "smtpout.secureserver.net",
+  port: 465,
+  secure: true,
+  auth: {
+    user: "support@promoterlink.com",
+    pass: "Kiranmjv1027@",
+  },
+  tls: {
+    rejectUnauthorized: false,
+  },
+});
 // authController.js
 const googleLogin = async (req, res) => {
   const { credential } = req.body;
@@ -596,13 +610,22 @@ const getOtpByProfileName = async (req, res) => {
 
 const updateStatusToSend = async (req, res) => {
   try {
-    const { userId, status } = req.body; // or req.body depending on how you want to pass the userId
+    const { userId, status } = req.body;
 
-    // Find the OTP record and update its status to 'send'
+    // Find the user details first (assuming you have a User model)
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update the OTP status
     const updatedOtp = await InstaOtp.findOneAndUpdate(
       { userId: userId },
       { status: status },
-      { new: true } // Return the updated document
+      { new: true }
     );
 
     if (!updatedOtp) {
@@ -612,9 +635,52 @@ const updateStatusToSend = async (req, res) => {
       });
     }
 
+    // Send email notification
+    try {
+      const mailOptions = {
+        from: 'support@promoterlink.com',
+        to: user.email,
+        subject: 'Instagram Verification Code Sent',
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border-radius: 8px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+            <div style="padding: 20px; background: linear-gradient(to right, #1FFFE0, #249BCA); color: white; text-align: center;">
+              <h1>Verification Code Sent</h1>
+            </div>
+            <div style="padding: 20px; line-height: 1.6; color: #333;">
+              <p>Hello ${user.ownerName || 'User'},</p>
+              <p>We have sent a verification code to your Instagram DM from our official page <strong>@promoterlink_offlical</strong>.</p>
+              
+              <p style="background-color: #f8f9fa; padding: 15px; border-radius: 6px; border-left: 4px solid #249BCA;">
+                <strong>Please check your Instagram Direct Messages</strong> to verify your account.
+              </p>
+              
+              <p>If you didn't receive the message:</p>
+              <ul>
+                <li>Check your message requests on Instagram</li>
+                <li>Make sure you're following @promoterlink_offlical</li>
+                <li>Wait a few minutes and check again</li>
+              </ul>
+              
+              <p>Best regards,<br>
+              The PromoterLink Team</p>
+            </div>
+            <div style="padding: 15px; text-align: center; font-size: 12px; color: #777; background-color: #f5f5f5;">
+              <p>© ${new Date().getFullYear()} PromoterLink. All rights reserved.</p>
+            </div>
+          </div>
+        `
+      };
+
+      await transporter.sendMail(mailOptions);
+      console.log(`Verification email sent to ${user.email}`);
+    } catch (emailError) {
+      console.error('Error sending verification email:', emailError);
+      // Continue even if email fails
+    }
+
     return res.status(200).json({
       success: true,
-      message: 'Status updated to "send" successfully',
+      message: `Status updated to "${status}" successfully and notification sent`,
       data: updatedOtp
     });
   } catch (error) {
