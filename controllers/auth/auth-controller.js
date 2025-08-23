@@ -266,23 +266,22 @@ const loginUser = async (req, res) => {
         id: checkUser._id,
         role: checkUser.role,
         email: checkUser.email,
-        userName: checkUser.ownerName, // Ensure it's `ownerName` since your schema uses this
+        userName: checkUser.ownerName,
       },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
+
+    // Convert Mongoose document to plain object and remove password
+    const userObject = checkUser.toObject();
+    delete userObject.password;
 
     // Set the token in cookies
     res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "None" }).json({
       success: true,
       message: "Logged in successfully.",
       token: token,
-      user: {
-        id: checkUser._id,
-        ownerName: checkUser.ownerName,
-        email: checkUser.email,
-        role: checkUser.role, // Explicitly return role
-      },
+      user: userObject // Return all user data without password
     });
   } catch (e) {
     console.error(e);
@@ -292,9 +291,6 @@ const loginUser = async (req, res) => {
     });
   }
 };
-
-
-
 
 
 const getAllUsers = async (req, res) => {
