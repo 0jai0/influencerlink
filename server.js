@@ -20,7 +20,6 @@ const app = express();
 
 // ✅ Allowed Origins
 const allowedOrigins = [ 
-  "*",
   "http://localhost:3000", // Local Dev
   "https://promoterlink.com", // Production Frontend,
   "https://influencerlink-598325568359.us-central1.run.app"
@@ -111,6 +110,7 @@ const io = new Server(server, {
     allowedHeaders: ["Content-Type", "Authorization", "userid"],
     credentials: true,
   },
+  transports: ["websocket"], 
 });
 
 // ✅ Setup WebSocket
