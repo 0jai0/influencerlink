@@ -110,7 +110,6 @@ const io = new Server(server, {
     allowedHeaders: ["Content-Type", "Authorization", "userid"],
     credentials: true,
   },
-  transports: ["websocket"], 
 });
 
 // ✅ Setup WebSocket
