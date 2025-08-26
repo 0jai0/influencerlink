@@ -22,41 +22,35 @@ const messageSchema = new mongoose.Schema({
       },
       timestamp: { 
         type: Date, 
-        default: Date.now,
-        expires: 1296000 // 15 days in seconds for individual messages
+        default: Date.now
       }
     }
   ],
-  // Add a field to track when the document should expire
   expireAt: {
     type: Date,
-    default: () => new Date(Date.now() + 60 * 60 * 60 * 1000), // 50 hours from now
+    default: () => new Date(Date.now() + 50 * 60 * 60 * 1000), // 50 hours
     index: { expires: 0 } // TTL index
   }
 }, { timestamps: true });
 
-// Middleware to update expireAt when chat array changes
+// Middleware to trim chat array to last 60 messages before save
 messageSchema.pre('save', function(next) {
-  // If chat array is empty, set immediate expiration
+  if (this.chat.length > 60) {
+    this.chat = this.chat.slice(-60); // keep only last 60 messages
+  }
   if (this.chat.length === 0) {
-    this.expireAt = new Date();
+    this.expireAt = new Date(); // expire immediately if empty
   }
   next();
 });
 
-// Static method to clean up empty chat documents
+// Optional: clean up empty chats older than 50 hours
 messageSchema.statics.cleanupEmptyChats = async function() {
-  const fiftyHoursAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  
-  // Find documents with empty chat array and older than 50 hours
+  const fiftyHoursAgo = new Date(Date.now() - 50 * 60 * 60 * 1000);
   const docsToExpire = await this.find({
-    $and: [
-      { chat: { $size: 0 } },
-      { createdAt: { $lte: fiftyHoursAgo } }
-    ]
+    chat: { $size: 0 },
+    createdAt: { $lte: fiftyHoursAgo }
   });
-  
-  // Set immediate expiration for these documents
   await Promise.all(docsToExpire.map(doc => {
     doc.expireAt = new Date();
     return doc.save();
