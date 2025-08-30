@@ -1,10 +1,12 @@
 const express = require("express");
-const { sendMessage,storeUserFCMToken  } = require("../../controllers/message/notificationController");
-
 const router = express.Router();
+const controller = require("../../controllers/message/notificationController");
 
-// Route to send message and notification
-router.post("/send-message", sendMessage);
-router.post("/store-token", storeUserFCMToken);
+router.post("/token/store", controller.storeUserFCMToken);
+router.get("/token/:userId", controller.getUserToken);
+
+router.post("/send", controller.sendNotification);
+router.get("/:userId", controller.getUserNotifications);
+router.put("/read", controller.markNotificationAsRead);
 
 module.exports = router;
