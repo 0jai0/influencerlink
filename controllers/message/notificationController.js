@@ -1,4 +1,4 @@
-const messaging = require("./firebaseAdmin"); // firebase-admin messaging instance
+const admin = require("./firebaseAdmin"); // firebase-admin messaging instance
 const Token = require("../../models/Token"); // user token model
 const Notification = require("../../models/Notification"); // updated embedded schema
 
@@ -41,50 +41,62 @@ exports.sendNotification = async (req, res) => {
   try {
     const { userId, subject, message, mediaLink } = req.body;
     if (!userId || !subject || !message) {
-      return res.status(400).json({ success: false, message: "userId, subject, and message are required" });
+      return res.status(400).json({
+        success: false,
+        message: "userId, subject, and message are required",
+      });
     }
 
-    // Get user token
+    // Get user token from DB
     const user = await Token.findOne({ userId });
-    if (!user) return res.status(404).json({ success: false, message: "User token not found" });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User token not found" });
+    }
 
-    // Expo Push API
-    const expoRes = await fetch("https://exp.host/--/api/v2/push/send", {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        to: user.fcmToken, // actually Expo token
-        sound: "default",
+    // Payload
+    const payload = {
+      token: user.fcmToken, // ✅ new API requires token field
+      notification: {
         title: subject,
         body: message,
-        data: { userId, subject, message, mediaLink: mediaLink || "" },
-      }),
-    });
+      },
+      data: {
+        userId,
+        subject,
+        message,
+        mediaLink: mediaLink || "",
+      },
+      android: { priority: "high" },
+    };
 
-    const result = await expoRes.json();
+    // ✅ send using v11+ API
+    const response = await admin.messaging().send(payload);
 
-    // Store in DB
+    // Save in DB
     let userNotifications = await Notification.findOne({ userId });
     const newNotification = { subject, message, mediaLink };
 
     if (!userNotifications) {
-      userNotifications = new Notification({ userId, notifications: [newNotification] });
+      userNotifications = new Notification({
+        userId,
+        notifications: [newNotification],
+      });
     } else {
       userNotifications.notifications.push(newNotification);
     }
-
     await userNotifications.save();
 
-    res.json({ success: true, message: "Notification sent and stored", notification: newNotification, expoResult: result });
+    res.json({
+      success: true,
+      message: "Notification sent and stored",
+      notification: newNotification,
+      fcmResult: response,
+    });
   } catch (error) {
     console.error("Error sending notification:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 };
-
 
 // ✅ Get all notifications for a user
 exports.getUserNotifications = async (req, res) => {
