@@ -20,6 +20,7 @@ const app = express();
 
 // ✅ Allowed Origins
 const allowedOrigins = [ 
+  "http://localhost:8081",
   "http://localhost:3000", // Local Dev
   "https://promoterlink.com", // Production Frontend,
   "https://influencerlink-598325568359.us-central1.run.app"
