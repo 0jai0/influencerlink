@@ -26,7 +26,7 @@ const transporter = nodemailer.createTransport({
         }
 
         // Generate a random 4-digit OTP
-        const otp = Math.floor(1000 + Math.random() * 9000); // Ensures a 4-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 9000); // Ensures a 4-digit OTP
 
         // Save OTP in the database
         await Otp.findOneAndUpdate(
